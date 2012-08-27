@@ -9,21 +9,31 @@ from clint import resources
 from clint.textui import puts, colored, indent
 from serverdensity.api import SDApi
 
-resources.init('ServerDensity', 'densli')
-config = resources.user.read('config.ini')
+def main():
+    """Main console script entrypoint for densli app
 
-if config is None:
-    resources.user.write('config.ini', 'BASIC CONFIG HERE')
-    fp = resources.user.open('config.ini')
+    Returns an integer POSIX exit code.
+    """
 
-    with indent(4, quote='>>>'):
-        puts(colored.red('No config.ini found..'))
-        puts(colored.red('Initialised basic config.ini at: %s' %
-                         (os.path.abspath(fp.name),)))
-        puts(colored.red('Edit this file and fill in your SD API details.'))
+    resources.init('ServerDensity', 'densli')
+    config = resources.user.read('config.ini')
 
-    fp.close()
-    sys.exit(78)
+    if config is None:
+        resources.user.write('config.ini', 'BASIC CONFIG HERE')
+        fp = resources.user.open('config.ini')
+
+        with indent(4, quote='>>>'):
+            puts(colored.red('No config.ini found..'))
+            puts(colored.red('Initialised basic config.ini at: %s' %
+                             (os.path.abspath(fp.name),)))
+            puts(colored.red('Edit this file and fill in your SD API details.'))
+
+        fp.close()
+        return os.EX_NOTFOUND
 
 
-sys.exit(0)
+    return os.EX_OK
+
+
+if __name__ == '__main__':
+    sys.exit(main())
