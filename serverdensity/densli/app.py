@@ -18,6 +18,14 @@ def main():
     resources.init('ServerDensity', 'densli')
     config = resources.user.read('config.ini')
 
+    config_path = os.getenv('DENSLI_HOME', False)
+    if config_path:
+        puts(colored.yellow('Using "%s" from DENSLI_HOME env var..' %
+            (config_path,))
+
+        resources.user.path = config_path
+        resources.user._create()
+
     if config is None:
         resources.user.write('config.ini', 'BASIC CONFIG HERE')
         fp = resources.user.open('config.ini')
