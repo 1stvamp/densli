@@ -15,15 +15,16 @@ def main():
     Returns an integer POSIX exit code.
     """
 
-    resources.init('ServerDensity', 'densli')
+    resources.init('ServerDensity', 'Densli')
     config = resources.user.read('config.ini')
 
     config_path = os.getenv('DENSLI_HOME', False)
     if config_path:
         puts(colored.yellow('Using "%s" from DENSLI_HOME env var..' %
-            (config_path,))
+            (config_path,)))
 
         resources.user.path = config_path
+        resources.user._exists = False
         resources.user._create()
 
     if config is None:
@@ -37,10 +38,10 @@ def main():
             puts(colored.red('Edit this file and fill in your SD API details.'))
 
         fp.close()
-        return os.EX_NOTFOUND
+        return 1
 
 
-    return os.EX_OK
+    return 0
 
 
 if __name__ == '__main__':
