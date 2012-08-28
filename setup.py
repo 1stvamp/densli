@@ -3,7 +3,8 @@
 
 import os
 cwd = os.path.dirname(__file__)
-__version__ = open(os.path.join(cwd, 'serverdensity', 'version.txt'), 'r').read().strip()
+__version__ = open(os.path.join(cwd, 'serverdensity', 'densli', 'version.txt'),
+                                     'r').read().strip()
 
 try:
         from setuptools import setup, find_packages
@@ -23,5 +24,10 @@ setup(
     install_requires=open('requirements.txt').readlines(),
     package_data={'serverdensity/densli': ['version.txt']},
     include_package_data=True,
-    license='BSD'
+    license='BSD',
+    entry_points={
+        'console_scripts': [
+            'densli = serverdensity.densli.app:main'
+        ]
+    }
 )
