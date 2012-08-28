@@ -16,7 +16,6 @@ def main():
     """
 
     resources.init('ServerDensity', 'Densli')
-    config = resources.user.read('config.ini')
 
     config_path = os.getenv('DENSLI_HOME', False)
     if config_path:
@@ -26,6 +25,8 @@ def main():
         resources.user.path = os.path.expanduser(config_path)
         resources.user._exists = False
         resources.user._create()
+
+    config = resources.user.read('config.ini')
 
     if config is None:
         resources.user.write('config.ini', 'BASIC CONFIG HERE')
