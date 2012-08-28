@@ -23,7 +23,7 @@ def main():
         puts(colored.yellow('Using "%s" from DENSLI_HOME env var..' %
             (config_path,)))
 
-        resources.user.path = config_path
+        resources.user.path = os.path.expanduser(config_path)
         resources.user._exists = False
         resources.user._create()
 
