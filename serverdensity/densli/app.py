@@ -23,14 +23,28 @@ def main():
     Returns an integer POSIX exit code.
     """
 
+    parser = OptionParser(usage="""usage: %prog [options]""")
+    parser.add_option("-u", "--username", dest="username", help="Optional SD"
+                      " username, overrides config file")
+    parser.add_option("-p", "--password", dest="password", help="Optional SD"
+                      " password, overrides config file")
+    parser.add_option("-a", "--account", dest="account", help="SD account"
+                      ", overrides config file (optional)")
+    parser.add_option("-q", "--quiet", dest="quiet", help="Don't output"
+                      " feedback to stdout", action="store_true")
+
+    (options, args) = parser.parse_args()
+
     resources.init('ServerDensity', 'Densli')
 
     # Allow the user to override the location for config files with an
     # environment variable
     config_path = os.getenv('DENSLI_HOME', False)
     if config_path:
-        puts(colored.yellow('Using "%s" from DENSLI_HOME env var..' %
-            (config_path,)))
+        if not options.quiet:
+            with indent(4, '>>>'):
+                puts(colored.yellow('Using "%s" from DENSLI_HOME env var..' %
+                                    (config_path,)))
 
         resources.user.path = os.path.expanduser(config_path)
         resources.user._exists = False
@@ -46,7 +60,7 @@ def main():
 
         fp = resources.user.open('config.json')
 
-        with indent(4, quote='>>>'):
+        with indent(4, quote='!!!'):
             puts(colored.red('No config.json found..'), stream=STDERR)
             puts(colored.red('Initialised basic config.json at: %s' %
                              (os.path.abspath(fp.name),)), stream=STDERR)
@@ -62,17 +76,17 @@ def main():
     try:
         config = json.loads(config)
     except Exception, e:
-        with indent(4, quote='>>>'):
+        with indent(4, quote='!!!'):
             puts(colored.red('Error parsing JSON from config file:'),
                              stream=STDERR)
             puts('', stream=STDERR)
-        with indent(8, quote='>>>'):
+        with indent(8, quote='!!!'):
             puts(colored.red(unicode(e)), stream=STDERR)
         return 1
 
     if not config.get('enabled', True):
         # User either hasn't edited or hasn't enabled their default config file
-        with indent(4, quote='>>>'):
+        with indent(4, quote='!!!'):
                 puts(colored.red('Config file disabled!'), stream=STDERR)
                 puts(colored.red('Have you edited your config file?'),
                                  stream=STDERR)
@@ -80,16 +94,11 @@ def main():
                                  ' to true.'), stream=STDERR)
         return 1
 
-    parser = OptionParser(usage="""usage: %prog [options]""")
-
-    parser.add_option("-u", "--username", dest="username", help="Optional SD"
-                      " username, overrides config file")
-    parser.add_option("-p", "--password", dest="password", help="Optional SD"
-                      " password, overrides config file")
-    parser.add_option("-a", "--account", dest="account", help="Optional SD"
-                      " account, overrides config file")
-
-    (options, args) = parser.parse_args()
+    if not args:
+        with indent(4, '!!!'):
+            puts(colored.red('No arguments supplied, please give me a path to'
+                            ' actually retrieve from the SD API.'))
+        return 1
 
     if options.username:
         config['username'] = options.username
