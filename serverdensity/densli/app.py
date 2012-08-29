@@ -9,6 +9,8 @@ from clint import resources
 from clint.textui import puts, colored, indent
 from serverdensity.api import SDApi
 
+STDERR = sys.stderr.write
+
 try:
     # Try simplejson first as it has speed advantages over std lib
     import simplejson as json
@@ -41,10 +43,11 @@ def main():
         fp = resources.user.open('config.json')
 
         with indent(4, quote='>>>'):
-            puts(colored.red('No config.json found..'))
+            puts(colored.red('No config.json found..'), stream=STDERR)
             puts(colored.red('Initialised basic config.json at: %s' %
-                             (os.path.abspath(fp.name),)))
-            puts(colored.red('Edit this file and fill in your SD API details.'))
+                             (os.path.abspath(fp.name),)), stream=STDERR)
+            puts(colored.red('Edit this file and fill in your SD API'
+                              ' details.'), stream=STDERR)
 
         fp.close()
         return 1
@@ -53,10 +56,11 @@ def main():
         config = json.loads(config)
     except Exception, e:
         with indent(4, quote='>>>'):
-            puts(colored.red('Error parsing JSON from config file:'))
-            puts('')
+            puts(colored.red('Error parsing JSON from config file:'),
+                             stream=STDERR)
+            puts('', stream=STDERR)
         with indent(8, quote='>>>'):
-            puts(colored.red(unicode(e)))
+            puts(colored.red(unicode(e)), stream=STDERR)
         return 1
 
 
