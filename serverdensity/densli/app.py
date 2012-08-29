@@ -25,6 +25,8 @@ def main():
 
     resources.init('ServerDensity', 'Densli')
 
+    # Allow the user to override the location for config files with an
+    # environment variable
     config_path = os.getenv('DENSLI_HOME', False)
     if config_path:
         puts(colored.yellow('Using "%s" from DENSLI_HOME env var..' %
@@ -36,6 +38,8 @@ def main():
 
     config = resources.user.read('config.json')
 
+    # If we couldn't load a config, create a default config file but warn
+    # the user as it won't work without editing
     if config is None:
         with open(os.path.join(os.path.dirname(__file__), 'config.json')) as json_fp:
             resources.user.write('config.json', json_fp.read())
@@ -52,6 +56,7 @@ def main():
         fp.close()
         return 1
 
+    # Load JSON and handle decoding errors
     try:
         config = json.loads(config)
     except Exception, e:
