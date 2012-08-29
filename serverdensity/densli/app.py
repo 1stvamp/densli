@@ -23,7 +23,7 @@ def main():
     Returns an integer POSIX exit code.
     """
 
-    parser = OptionParser(usage="""usage: %prog [options]""")
+    parser = OptionParser(usage="""usage: %prog [options] thing method""")
     parser.add_option("-u", "--username", dest="username", help="Optional SD"
                       " username, overrides config file")
     parser.add_option("-p", "--password", dest="password", help="Optional SD"
@@ -94,12 +94,23 @@ def main():
                                  ' to true.'), stream=STDERR)
         return 1
 
-    if not args:
+    # If we didn't get any args of we got a single arg but it didn't contain a
+    # recognised delimiter, then we can't proceed as we don't know what to get
+    # from the API
+    if not args or (len(args) == 1 and any(x in args[0] for x in ('/', '.'))):
         with indent(4, '!!!'):
-            puts(colored.red('No arguments supplied, please give me a path to'
-                            ' actually retrieve from the SD API.'))
+            puts(colored.red('Too few arguments supplied, please give me a full'
+                  ' path to actually retrieve from the SD API.'), stream=STDERR)
+            puts(colored.red('Path can be in any of the form:'), stream=STDERR)
+
+        with indent(8, '!!!'):
+            puts(colored.red('thing method'), stream=STDERR)
+            puts(colored.red('thing/method'), stream=STDERR)
+            puts(colored.red('thing.method'), stream=STDERR)
+
         return 1
 
+    # Override values from config file with CLI options
     if options.username:
         config['username'] = options.username
     if options.password:
@@ -108,6 +119,7 @@ def main():
         config['account'] = options.account
 
     api = SDApi(**config)
+
 
     return 0
 
