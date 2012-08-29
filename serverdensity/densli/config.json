@@ -1,5 +1,6 @@
 {
     "account": "foobar.serverdensity.com",
     "username": "user",
-    "password": "secret"
+    "password": "secret",
+    "enabled": false
 }

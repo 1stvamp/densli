@@ -52,6 +52,8 @@ def main():
                              (os.path.abspath(fp.name),)), stream=STDERR)
             puts(colored.red('Edit this file and fill in your SD API'
                               ' details.'), stream=STDERR)
+            puts(colored.red('Remember to remove the "enabled" field or set it'
+                             ' to true.'), stream=STDERR)
 
         fp.close()
         return 1
@@ -68,6 +70,18 @@ def main():
             puts(colored.red(unicode(e)), stream=STDERR)
         return 1
 
+    if not config.get('enabled', True):
+        # User either hasn't edited or hasn't enabled their default config file
+        with indent(4, quote='>>>'):
+                puts(colored.red('Config file disabled!'), stream=STDERR)
+                puts(colored.red('Have you edited your config file?'),
+                                 stream=STDERR)
+                puts(colored.red('If so remove the "enabled" field or set it'
+                                 ' to true.'), stream=STDERR)
+        return 1
+
+    api = SDApi(**config)
+    print api
 
     return 0
 
