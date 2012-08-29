@@ -22,7 +22,7 @@ setup(
     url='https://github.com/serverdensity/densli',
     packages=find_packages(exclude=['ez_setup']),
     install_requires=open('requirements.txt').readlines(),
-    package_data={'serverdensity/densli': ['version.txt']},
+    package_data={'serverdensity/densli': ['version.txt', 'config.json']},
     include_package_data=True,
     license='BSD',
     entry_points={

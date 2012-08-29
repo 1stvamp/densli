@@ -3,3 +3,4 @@ include LICENSE
 include CHANGELOG
 include *.txt
 recursive-include serverdensity *.txt
+recursive-include serverdensity *.json

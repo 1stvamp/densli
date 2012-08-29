@@ -9,6 +9,12 @@ from clint import resources
 from clint.textui import puts, colored, indent
 from serverdensity.api import SDApi
 
+try:
+    # Try simplejson first as it has speed advantages over std lib
+    import simplejson as json
+except ImportError:
+    import json
+
 def main():
     """Main console script entrypoint for densli app
 
@@ -26,15 +32,17 @@ def main():
         resources.user._exists = False
         resources.user._create()
 
-    config = resources.user.read('config.ini')
+    config = resources.user.read('config.json')
 
     if config is None:
-        resources.user.write('config.ini', 'BASIC CONFIG HERE')
-        fp = resources.user.open('config.ini')
+        with open(os.path.join(os.path.dirname(__file__), 'config.json')) as json_fp:
+            resources.user.write('config.json', json_fp.read())
+
+        fp = resources.user.open('config.json')
 
         with indent(4, quote='>>>'):
-            puts(colored.red('No config.ini found..'))
-            puts(colored.red('Initialised basic config.ini at: %s' %
+            puts(colored.red('No config.json found..'))
+            puts(colored.red('Initialised basic config.json at: %s' %
                              (os.path.abspath(fp.name),)))
             puts(colored.red('Edit this file and fill in your SD API details.'))
 
