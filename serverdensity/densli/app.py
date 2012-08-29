@@ -80,6 +80,24 @@ def main():
                                  ' to true.'), stream=STDERR)
         return 1
 
+    parser = OptionParser(usage="""usage: %prog [options]""")
+
+    parser.add_option("-u", "--username", dest="username", help="Optional SD"
+                      " username, overrides config file")
+    parser.add_option("-p", "--password", dest="password", help="Optional SD"
+                      " password, overrides config file")
+    parser.add_option("-a", "--account", dest="account", help="Optional SD"
+                      " account, overrides config file")
+
+    (options, args) = parser.parse_args()
+
+    if options.username:
+        config['username'] = options.username
+    if options.password:
+        config['password'] = options.password
+    if options.account:
+        config['account'] = options.account
+
     api = SDApi(**config)
 
     return 0
