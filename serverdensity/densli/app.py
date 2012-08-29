@@ -49,6 +49,16 @@ def main():
         fp.close()
         return 1
 
+    try:
+        config = json.loads(config)
+    except Exception, e:
+        with indent(4, quote='>>>'):
+            puts(colored.red('Error parsing JSON from config file:'))
+            puts('')
+        with indent(8, quote='>>>'):
+            puts(colored.red(unicode(e)))
+        return 1
+
 
     return 0
 
