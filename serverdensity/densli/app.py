@@ -24,14 +24,18 @@ def main():
     """
 
     parser = OptionParser(usage="""usage: %prog [options] thing method""")
-    parser.add_option("-u", "--username", dest="username", help="Optional SD"
-                      " username, overrides config file")
-    parser.add_option("-p", "--password", dest="password", help="Optional SD"
-                      " password, overrides config file")
+    parser.add_option("-u", "--username", dest="username", help="SD username"
+                      ", overrides config file (optional)")
+    parser.add_option("-p", "--password", dest="password", help="SD password"
+                      ", overrides config file (optional)")
     parser.add_option("-a", "--account", dest="account", help="SD account"
                       ", overrides config file (optional)")
     parser.add_option("-q", "--quiet", dest="quiet", help="Don't output"
-                      " feedback to stdout", action="store_true")
+                      " feedback to stdout (optional)", action="store_true")
+    parser.add_option("-d", "--data", dest="data", help="Data to post to"
+                      " the API. Multiple data values are excepted. Values"
+                      " should be in name/value pairs, e.g. name=value",
+                      action="append")
 
     (options, args) = parser.parse_args()
 
@@ -120,6 +124,24 @@ def main():
 
     api = SDApi(**config)
 
+    if len(args) == 1:
+        delim = '.' if '.' in args[0] else '/'
+        args = args[0].split(delim)
+
+    try:
+        data = dict(d.split('=') for d in options.data)
+    except ValueError, e:
+        with indent(4, quote='!!!'):
+            puts(colored.red('POST data (-d/--data) parsing error!'),
+                             stream=STDERR)
+            puts(colored.red('Remember they must be in name/value pairs, e.g.'
+                             ' -d name=value'), stream=STDERR)
+            puts('', stream=STDERR)
+        with indent(8, quote='!!!'):
+            puts(colored.red(unicode(e)), stream=STDERR)
+        return 1
+
+    print data
 
     return 0
 
