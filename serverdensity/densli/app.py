@@ -81,7 +81,6 @@ def main():
         return 1
 
     api = SDApi(**config)
-    print api
 
     return 0
 
