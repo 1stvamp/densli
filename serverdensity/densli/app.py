@@ -40,7 +40,7 @@ def show_info(msgs):
 def main():
     """Main console script entrypoint for densli app
 
-    Returns an integer POSIX exit code.
+    Returns an integer exit code 0 for success, 1 for error(s).
     """
 
     parser = OptionParser(usage="""usage: %prog [options] thing method""")
