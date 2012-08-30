@@ -2,12 +2,16 @@
 """Command line wrapper for the ServerDensity API
 """
 
+from __future__ import division
+
 import os
 import sys
 from optparse import OptionParser
-from clint import resources
-from clint.textui import puts, colored, indent
-from serverdensity.api import SDApi
+from itertools import islice
+from clint import resources, piped_in
+from clint.textui import puts, colored, indent, columns
+from serverdensity.api import SDApi, SDServiceError
+from .spark import spark
 
 STDERR = sys.stderr.write
 
@@ -17,6 +21,22 @@ try:
 except ImportError:
     import json
 
+def show_error(msgs, ex=None, tab=4):
+    for msg in msgs:
+        with indent(tab, quote='!!!'):
+            puts(colored.red(msg), stream=STDERR)
+
+    if ex:
+        puts('', stream=STDERR)
+        with indent(8, quote='!!!'):
+            puts(colored.red(unicode(ex)), stream=STDERR)
+
+def show_info(msgs):
+    for msg in msgs:
+        with indent(4, '>>>'):
+            puts(colored.yellow(msg))
+
+
 def main():
     """Main console script entrypoint for densli app
 
@@ -24,18 +44,27 @@ def main():
     """
 
     parser = OptionParser(usage="""usage: %prog [options] thing method""")
+
     parser.add_option("-u", "--username", dest="username", help="SD username"
                       ", overrides config file (optional)")
+
     parser.add_option("-p", "--password", dest="password", help="SD password"
                       ", overrides config file (optional)")
+
     parser.add_option("-a", "--account", dest="account", help="SD account"
                       ", overrides config file (optional)")
+
     parser.add_option("-q", "--quiet", dest="quiet", help="Don't output"
                       " feedback to stdout (optional)", action="store_true")
-    parser.add_option("-d", "--data", dest="data", help="Data to post to"
+
+    parser.add_option("-s", "--spark", dest="spark", help="Generate a text"
+                      " based sparkline graph from metrics.getRange results",
+                      action="store_true")
+
+    parser.add_option("-d", "--data", dest="data", help="Data to send to"
                       " the API. Multiple data values are excepted. Values"
                       " should be in name/value pairs, e.g. name=value",
-                      action="append")
+                      action="append", default=[])
 
     (options, args) = parser.parse_args()
 
@@ -46,9 +75,8 @@ def main():
     config_path = os.getenv('DENSLI_HOME', False)
     if config_path:
         if not options.quiet:
-            with indent(4, '>>>'):
-                puts(colored.yellow('Using "%s" from DENSLI_HOME env var..' %
-                                    (config_path,)))
+            show_info(['Using "%s" from DENSLI_HOME env var..' %
+                       (config_path,)])
 
         resources.user.path = os.path.expanduser(config_path)
         resources.user._exists = False
@@ -64,14 +92,12 @@ def main():
 
         fp = resources.user.open('config.json')
 
-        with indent(4, quote='!!!'):
-            puts(colored.red('No config.json found..'), stream=STDERR)
-            puts(colored.red('Initialised basic config.json at: %s' %
-                             (os.path.abspath(fp.name),)), stream=STDERR)
-            puts(colored.red('Edit this file and fill in your SD API'
-                              ' details.'), stream=STDERR)
-            puts(colored.red('Remember to remove the "enabled" field or set it'
-                             ' to true.'), stream=STDERR)
+        show_error(['No config.json found..',
+                    'Initialised basic config.json at: %s' %
+                     (os.path.abspath(fp.name),),
+                    'Edit this file and fill in your SD API details.',
+                    'Remember to remove the "enabled" field or set it to'
+                    ' true.'])
 
         fp.close()
         return 1
@@ -80,37 +106,27 @@ def main():
     try:
         config = json.loads(config)
     except Exception, e:
-        with indent(4, quote='!!!'):
-            puts(colored.red('Error parsing JSON from config file:'),
-                             stream=STDERR)
-            puts('', stream=STDERR)
-        with indent(8, quote='!!!'):
-            puts(colored.red(unicode(e)), stream=STDERR)
+        show_error(['Error parsing JSON from config file:'], e)
         return 1
 
     if not config.get('enabled', True):
         # User either hasn't edited or hasn't enabled their default config file
-        with indent(4, quote='!!!'):
-                puts(colored.red('Config file disabled!'), stream=STDERR)
-                puts(colored.red('Have you edited your config file?'),
-                                 stream=STDERR)
-                puts(colored.red('If so remove the "enabled" field or set it'
-                                 ' to true.'), stream=STDERR)
+        show_error(['Config file disabled!',
+                    'Have you edited your config file?',
+                    'If so remove the "enabled" field or set it to true.'])
         return 1
 
     # If we didn't get any args of we got a single arg but it didn't contain a
     # recognised delimiter, then we can't proceed as we don't know what to get
     # from the API
     if not args or (len(args) == 1 and any(x in args[0] for x in ('/', '.'))):
-        with indent(4, '!!!'):
-            puts(colored.red('Too few arguments supplied, please give me a full'
-                  ' path to actually retrieve from the SD API.'), stream=STDERR)
-            puts(colored.red('Path can be in any of the form:'), stream=STDERR)
+        show_error(['Too few arguments supplied, please give me a full'
+                     ' path to actually retrieve from the SD API.',
+                     'Path can be in any of the form:'])
 
-        with indent(8, '!!!'):
-            puts(colored.red('thing method'), stream=STDERR)
-            puts(colored.red('thing/method'), stream=STDERR)
-            puts(colored.red('thing.method'), stream=STDERR)
+        show_error(['thing method',
+                    'thing/method',
+                    'thing.method'], tab=8)
 
         return 1
 
@@ -124,24 +140,70 @@ def main():
 
     api = SDApi(**config)
 
+    # Turn alternative API path formats into a usable list, e.g.
+    # thing.method into ['thing', 'method]
     if len(args) == 1:
         delim = '.' if '.' in args[0] else '/'
         args = args[0].split(delim)
 
+    # Turn multiple name=value -d/--data options into a dict
+    data = {}
+    if len(options.data) > 0:
+        try:
+            data = dict(d.split('=') for d in options.data)
+        except ValueError, e:
+            show_error(['Data (-d/--data) parsing error.',
+                        'Remember they must be in name/value pairs, e.g.'
+                         ' -d name=value'], e)
+            return 1
+
+    # Check for piped in data
+    piped_data = piped_in()
+    if piped_data:
+        try:
+            data.update(json.loads(piped_data))
+        except Exception, e:
+            show_error(['Error parsing data from stdin.'], e)
+            return 1
+
+    curr = api
+    for arg in args:
+        curr = getattr(curr, arg)
+
     try:
-        data = dict(d.split('=') for d in options.data)
-    except ValueError, e:
-        with indent(4, quote='!!!'):
-            puts(colored.red('POST data (-d/--data) parsing error!'),
-                             stream=STDERR)
-            puts(colored.red('Remember they must be in name/value pairs, e.g.'
-                             ' -d name=value'), stream=STDERR)
-            puts('', stream=STDERR)
-        with indent(8, quote='!!!'):
-            puts(colored.red(unicode(e)), stream=STDERR)
+        api_output = curr(data)['data'][args[0]]
+    except SDServiceError, e:
+        api_output = e.response
+    except Exception, e:
+        show_error(['Something went wrong sending the API request:'], e)
         return 1
 
-    print data
+    if args[0] == 'metrics' and args[1] == 'getRange' and options.spark:
+        for k,metric in api_output.iteritems():
+            # Hack to get around some metrics data structures returned by the
+            # API having subkeys
+            if len(metric.keys()) == 1:
+                metric = metric.values()[0]
+
+            # If available try to use the `spark` shell app to create a graph
+            show_info(["%s for %s - %s:" % (metric['label'], data['rangeStart'],
+                                      data['rangeEnd'])])
+
+            values = [v[1] for v in metric['data']]
+
+            # Anything bigger than this looks like crap in the terminal
+            if len(values) > 20:
+                slice_value = int(len(values)/20)
+                # Reduce large list to smaller list of averages
+                # By taking mean of sliding window normalised lists
+                # for every X normalised list (not entirely accurate, but good
+                # enough)
+                values = list(sum(values[i:i+slice_value])/len(values) for i in
+                                xrange(len(values)-2) if i % slice_value == 0)
+
+            puts(colored.blue(spark(values)))
+    else:
+        puts(json.dumps(api_output, indent=4))
 
     return 0
 
