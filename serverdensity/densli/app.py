@@ -119,7 +119,7 @@ def main():
     # If we didn't get any args of we got a single arg but it didn't contain a
     # recognised delimiter, then we can't proceed as we don't know what to get
     # from the API
-    if not args or (len(args) == 1 and any(x in args[0] for x in ('/', '.'))):
+    if not args or (len(args) == 1 and not any(x in args[0] for x in ('/', '.'))):
         show_error(['Too few arguments supplied, please give me a full'
                      ' path to actually retrieve from the SD API.',
                      'Path can be in any of the form:'])
@@ -142,9 +142,14 @@ def main():
 
     # Turn alternative API path formats into a usable list, e.g.
     # thing.method into ['thing', 'method]
-    if len(args) == 1:
+    if any(x in args[0] for x in ('/', '.')):
         delim = '.' if '.' in args[0] else '/'
-        args = args[0].split(delim)
+        args[:1] = args[0].split(delim)
+
+    # Allow request data as trailing args
+    if len(args) > 2:
+        options.data[:0] = args[2:]
+        args = args[0:2]
 
     # Turn multiple name=value -d/--data options into a dict
     data = {}
