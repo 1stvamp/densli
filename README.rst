@@ -33,6 +33,10 @@ To create an example config file you can edit with your SD details just run
 ``densli`` for the first time, it will report where it has created the config
 file (this is usually in a standard location for configurations for your
 operating system, e.g. under ``$HOME/Library/Application Support/Densli`` under OS X).
+
+DENSLI_HOME environment variable
+********************************
+
 The location for this config file can be changed using the environment variable ``DENSLI_HOME``, e.g.::
 
     DENSLI_HOME=~/.densli
@@ -43,7 +47,13 @@ Any or all of the auth details can be overridden as options passed to densli, th
 
     densli --username=myusername --password=mypassword --account=myaccount.serverdensity.com ...
 
+--help
+******
+
 You can get a list/descrption of all the available options using ``-h`` or ``--help`` options.
+
+API endpoints
+*************
 
 You can use densli to get results back from any of the `Server Density API <https://github.com/serverdensity/sd-api-docs>`_ endpoints, for example to access the `devices list <https://github.com/serverdensity/sd-api-docs/blob/master/sections/devices.md#list>`_::
 
@@ -53,6 +63,9 @@ The above format "<section> <method>" can also be represented using a '/' or '.'
 
  * ``devices.list``
  * ``devices/list``
+
+data
+****
 
 Data to send to an endpoint can be defined as name-value pairs (seperated by an equals sign ``=``) using multiple ``-d`` or ``--data`` options, as piped in JSON, or as trailing name-value pair arguements, e.g. these are all the same::
 
@@ -64,7 +77,13 @@ Data to send to an endpoint can be defined as name-value pairs (seperated by an 
 
     echo '{ "deviceId": "4e95d575160ba0212b003356" }' | densli metrics getLatest
 
+--quiet
+*******
+
 densli is rather vocal about picking up settings and how it handles things (via ``STDOUT``), or about errors (via ``STDERR``), you might not want anything sent to ``STDOUT`` if you're piping densli's output to another process, to silence non-API output use the ``-q`` or ``-quiet`` options.
+
+--spark
+*******
 
 The default output for densli commands is human-readable JSON (indented with 4 spaces, regardless of the format that came back from the SD API), but for the `metrics getRange <https://github.com/serverdensity/sd-api-docs/blob/master/sections/metrics.md#get-range>`_ endpoint you can also get results outputted as a sparkline bargraphs (using the unicode characters 9601-9608) with the ``-s`` or ``--spark`` option, e.g.::
 
@@ -84,6 +103,9 @@ Will output something like::
 
 By default sparkline graphs are limited to a width of 20 characters for display purposes, but you can override this by setting the "max_graph_width" option to an integer of your choice in your ``config.json`` file.
 
+--timeago
+*********
+
 A shortcut for defining a relative time offset for ``metrics.getRange`` calls is provided with the ``-t`` and ``--timeago`` options. This lets you easily see recent metrics for a period up to right now, and accepts days, hours, minutes, and seconds in various formats, e.g.::
 
     densli metrics getRange deviceId=4e95d575160ba0212b003356 metric=diskUsage \
@@ -97,6 +119,9 @@ A shortcut for defining a relative time offset for ``metrics.getRange`` calls is
 
     densli metrics getRange deviceId=4e95d575160ba0212b003356 metric=diskUsage \
     --spark -timeago="1d 30s" # past day and 30 seconds
+
+--postback
+**********
 
 To make sending postbacks to the `metrics.postback endpoint
 <https://github.com/serverdensity/sd-api-docs/blob/master/sections/metrics.md#postback>`_ with piped in data more convenient you can use the ``-P`` or ``--postback`` option to flag ``STDIN`` data as a raw JSON payload which will be sent in a ``payload`` field as the postback endpoint expects, e.g.::
