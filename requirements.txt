@@ -1,3 +1,4 @@
 py-serverdensity >= 1.0.8
 clint
 simplejson
+py-sparkblocks

@@ -11,7 +11,7 @@ from itertools import islice
 from clint import resources, piped_in
 from clint.textui import puts, colored, indent, columns
 from serverdensity.api import SDApi, SDServiceError
-from .spark import spark
+from sparkblocks import spark
 
 STDERR = sys.stderr.write
 
