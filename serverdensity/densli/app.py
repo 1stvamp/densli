@@ -199,7 +199,6 @@ def main():
             if len(metric.keys()) == 1:
                 metric = metric.values()[0]
 
-            # If available try to use the `spark` shell app to create a graph
             show_info(["%s for %s - %s:" % (metric['label'], data['rangeStart'],
                                       data['rangeEnd'])])
 
