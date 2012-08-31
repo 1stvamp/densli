@@ -65,7 +65,8 @@ densli is rather vocal about picking up settings and how it handles things (via 
 
 The default output for densli commands is human-readable JSON (indented with 4 spaces, regardless of the format that came back from the SD API), but for the `metrics getRange <https://github.com/serverdensity/sd-api-docs/blob/master/sections/metrics.md#get-range>`_ endpoint you can also get results outputted as a sparkline bargraphs (using the unicode characters 9601-9608) with the ``-s`` or ``--spark`` option, e.g.::
 
-    densli metrics getRange -d deviceId=4e95d575160ba0212b003356 -d metric=diskUsage -d rangeStart=012-08-25T00:00:00 -d rangeEnd=012-08-30T00:00:00 --spark
+    densli metrics getRange -d deviceId=4e95d575160ba0212b003356 -d metric=diskUsage -d \
+    rangeStart=012-08-25T00:00:00 -d rangeEnd=012-08-30T00:00:00 --spark
 
 Will output something like::
 
