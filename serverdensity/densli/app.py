@@ -61,6 +61,10 @@ def main():
                       " based sparkline graph from metrics.getRange results",
                       action="store_true")
 
+    parser.add_option("-P", "--postback", dest="postback", help="Flag STDIN"
+                      " piped data as being a metric postback, so send as raw"
+                      " JSON in the POST field 'postback'.", action="store_true")
+
     parser.add_option("-d", "--data", dest="data", help="Data to send to"
                       " the API. Multiple data values are excepted. Values"
                       " should be in name/value pairs, e.g. name=value",
@@ -166,11 +170,15 @@ def main():
     # Check for piped in data
     piped_data = piped_in()
     if piped_data:
-        try:
-            data.update(json.loads(piped_data))
-        except Exception, e:
-            show_error(['Error parsing data from stdin.'], e)
-            return 1
+        if options.postback:
+            # Treat STDIN as a raw JSON string to send in postback field
+            data['postback'] = piped_in
+        else:
+            try:
+                data.update(json.loads(piped_data))
+            except Exception, e:
+                show_error(['Error parsing data from stdin.'], e)
+                return 1
 
     curr = api
     for arg in args:
