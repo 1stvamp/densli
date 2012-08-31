@@ -1,6 +1,12 @@
 ChangeLog for densli
 ====================
 
+1.0.2 (31-08-2012)
+------------------
+
+ - Fix for errors being obfuscated if you use the -s/--spark option with metrics.getRange (gh issue #1).
+ - Added -t/--timeago option to define a date range for metrics.getRange using a relative offset.
+
 1.0.1 (31-08-2012)
 ------------------
 
