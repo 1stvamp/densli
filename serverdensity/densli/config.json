@@ -2,5 +2,6 @@
     "account": "foobar.serverdensity.com",
     "username": "user",
     "password": "secret",
-    "enabled": false
+    "enabled": false,
+    "max_graph_width": 20
 }
