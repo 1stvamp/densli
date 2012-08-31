@@ -80,3 +80,9 @@ Will output something like::
     ▇▇▇▇▇▇▇▇▇▇▆▃▁▁▁▁▁▁▁▁
 
 By default sparkline graphs are limited to a width of 20 characters for display purposes, but you can override this by setting the "max_graph_width" option to an integer of your choice in your ``config.json`` file.
+
+To make sending postbacks to the `metrics.postback endpoint
+<https://github.com/serverdensity/sd-api-docs/blob/master/sections/metrics.md#postback>`_ with piped in data more convenient you can use the ``-P`` or ``--postback`` option to flag ``STDIN`` data as a raw JSON payload which will be sent in a ``payload`` field as the postback endpoint expects, e.g.::
+
+    echo '{ "agentKey": "blah", "someMetric": [...], "someOtherMetric": 1.0 }' \
+    | densli metrics postback deviceId=4e95d575160ba0212b003356 --postback
