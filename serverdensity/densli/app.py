@@ -5,9 +5,12 @@
 from __future__ import division
 
 import os
+import re
 import sys
-from optparse import OptionParser
 from itertools import islice
+from optparse import OptionParser
+from datetime import timedelta, datetime
+
 from clint import resources, piped_in
 from clint.textui import puts, colored, indent, columns
 from serverdensity.api import SDApi, SDServiceError
@@ -46,24 +49,30 @@ def main():
     parser = OptionParser(usage="""usage: %prog [options] thing method""")
 
     parser.add_option("-u", "--username", dest="username", help="SD username"
-                      ", overrides config file (optional)")
+                      ", overrides config file.")
 
     parser.add_option("-p", "--password", dest="password", help="SD password"
-                      ", overrides config file (optional)")
+                      ", overrides config file.")
 
     parser.add_option("-a", "--account", dest="account", help="SD account"
-                      ", overrides config file (optional)")
+                      ", overrides config file.")
 
     parser.add_option("-q", "--quiet", dest="quiet", help="Don't output"
-                      " feedback to stdout (optional)", action="store_true")
+                      " feedback to stdout.", action="store_true")
 
     parser.add_option("-s", "--spark", dest="spark", help="Generate a text"
-                      " based sparkline graph from metrics.getRange results",
+                      " based sparkline graph from metrics.getRange results.",
                       action="store_true")
 
     parser.add_option("-P", "--postback", dest="postback", help="Flag STDIN"
                       " piped data as being a metric postback, so send as raw"
                       " JSON in the POST field 'postback'.", action="store_true")
+
+    parser.add_option("-t", "--timeago", dest="timeago", help="Take a relative"
+                      " time offset from NOW and use that as the range for"
+                      " a metrics.getRange call. Accepts [Nd[ay]] [Nh[our]]"
+                      " [Nm[in[utes]]] [Ns[ec[ond]]] in any combination, e.g."
+                      " 1h 20sec, 5min, 2day 15s, 12 minutes etc.")
 
     parser.add_option("-d", "--data", dest="data", help="Data to send to"
                       " the API. Multiple data values are excepted. Values"
@@ -180,19 +189,37 @@ def main():
                 show_error(['Error parsing data from stdin.'], e)
                 return 1
 
+    # Parse relative date range offset for metrics.getRange calls
+    if options.timeago:
+        part_names = ['days', 'hours', 'minutes', 'seconds']
+        parts = {}
+        for name in part_names:
+            result = re.search('(?P<%s>\d+)[%s]' % (name, name[0]),
+                               options.timeago)
+            if result:
+                parts[name] = int(result.group(name))
+
+        range_end = datetime.utcnow().replace(microsecond=0)
+        range_start = range_end - timedelta(**parts)
+
+        data['rangeStart'] = str(range_start)
+        data['rangeEnd'] = str(range_end)
+
     curr = api
     for arg in args:
         curr = getattr(curr, arg)
 
+    error = False
     try:
         api_output = curr(data)['data'][args[0]]
     except SDServiceError, e:
         api_output = e.response
+        error = True
     except Exception, e:
         show_error(['Something went wrong sending the API request:'], e)
         return 1
 
-    if args[0] == 'metrics' and args[1] == 'getRange' and options.spark:
+    if not error and args[0] == 'metrics' and args[1] == 'getRange' and options.spark:
         for k,metric in api_output.iteritems():
             # Hack to get around some metrics data structures returned by the
             # API having subkeys
