@@ -29,7 +29,10 @@ Or cloned from `Github <http://www.github.com/>`_ using ``git``::
 Usage
 -----
 densli uses a JSON config file to store authentication info (account / username / passord), and other options.
-To create an exaple config file you can edit with your SD details just run ``densli`` for the first time, it will report where it has created the config file (this is usually in a standard location for configurations for your operating system, e.g. under ``$HOME/Library/Application Support`` under OS X).
+To create an exaple config file you can edit with your SD details just run
+``densli`` for the first time, it will report where it has created the config
+file (this is usually in a standard location for configurations for your
+operating system, e.g. under ``$HOME/Library/Application Support/Densli`` under OS X).
 The location for this config file can be changed using the environment variable ``DENSLI_HOME``, e.g.::
 
     DENSLI_HOME=~/.densli
