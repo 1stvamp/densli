@@ -138,7 +138,8 @@ def main():
     if options.account:
         config['account'] = options.account
 
-    api = SDApi(**config)
+    api = SDApi(account=config['account'], username=config['username'],
+                password=config['password'])
 
     # Turn alternative API path formats into a usable list, e.g.
     # thing.method into ['thing', 'method]
