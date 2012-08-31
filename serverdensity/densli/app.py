@@ -194,7 +194,7 @@ def main():
         part_names = ['days', 'hours', 'minutes', 'seconds']
         parts = {}
         for name in part_names:
-            result = re.search('(?P<%s>\d+)[%s]' % (name, name[0]),
+            result = re.search('(?P<%s>\d+)\s*?[%s]' % (name, name[0]),
                                options.timeago)
             if result:
                 parts[name] = int(result.group(name))
