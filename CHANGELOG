@@ -1,0 +1,13 @@
+ChangeLog for densli
+====================
+
+1.0.1 (31-08-2012)
+------------------
+
+ - Added -P/--postback option to send stdin as a raw JSON payload for use with the metrics.postback API endpoint.
+ - Seperated sparks module to it's own python package (py-sparkblocks).
+
+1.0.0 (30-08-2012)
+------------------
+
+ - Initial release for pypi.
