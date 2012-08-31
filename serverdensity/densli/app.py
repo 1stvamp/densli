@@ -196,9 +196,10 @@ def main():
 
             values = [v[1] for v in metric['data']]
 
+            max_graph_width = config.get('max_graph_width', 20)
             # Anything bigger than this looks like crap in the terminal
-            if len(values) > 20:
-                slice_value = int(len(values)/20)
+            if len(values) > max_graph_width:
+                slice_value = int(len(values)/max_graph_width)
                 # Reduce large list to smaller list of averages
                 # By taking mean of sliding window normalised lists
                 # for every X normalised list (not entirely accurate, but good
