@@ -57,8 +57,11 @@ The above format "<section> <method>" can also be represented using a '/' or '.'
 Data to send to an endpoint can be defined as name-value pairs (seperated by an equals sign ``=``) using multiple ``-d`` or ``--data`` options, as piped in JSON, or as trailing name-value pair arguements, e.g. these are all the same::
 
     densli metrics getLatest -d deviceId=4e95d575160ba0212b003356
+
     densli metrics getLatest --data=deviceId=4e95d575160ba0212b003356
+
     densli metrics getLatest deviceId=4e95d575160ba0212b003356
+
     echo '{ "deviceId": "4e95d575160ba0212b003356" }' | densli metrics getLatest
 
 densli is rather vocal about picking up settings and how it handles things (via ``STDOUT``), or about errors (via ``STDERR``), you might not want anything sent to ``STDOUT`` if you're piping densli's output to another process, to silence non-API output use the ``-q`` or ``-quiet`` options.
@@ -80,6 +83,20 @@ Will output something like::
     ▇▇▇▇▇▇▇▇▇▇▆▃▁▁▁▁▁▁▁▁
 
 By default sparkline graphs are limited to a width of 20 characters for display purposes, but you can override this by setting the "max_graph_width" option to an integer of your choice in your ``config.json`` file.
+
+A shortcut for defining a relative time offset for ``metrics.getRange`` calls is provided with the ``-t`` and ``--timeago`` options. This lets you easily see recent metrics for a period up to right now, and accepts days, hours, minutes, and seconds in various formats, e.g.::
+
+    densli metrics getRange deviceId=4e95d575160ba0212b003356 metric=diskUsage \
+    --spark -t 30m # past 30 minutes
+
+    densli metrics getRange deviceId=4e95d575160ba0212b003356 metric=diskUsage \
+    --spark -t 1hour # past hour
+
+    densli metrics getRange deviceId=4e95d575160ba0212b003356 metric=diskUsage \
+    --spark -timeago="1h 15min" # past hour and a quarter
+
+    densli metrics getRange deviceId=4e95d575160ba0212b003356 metric=diskUsage \
+    --spark -timeago="1d 30s" # past day and 30 seconds
 
 To make sending postbacks to the `metrics.postback endpoint
 <https://github.com/serverdensity/sd-api-docs/blob/master/sections/metrics.md#postback>`_ with piped in data more convenient you can use the ``-P`` or ``--postback`` option to flag ``STDIN`` data as a raw JSON payload which will be sent in a ``payload`` field as the postback endpoint expects, e.g.::
