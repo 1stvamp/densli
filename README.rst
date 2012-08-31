@@ -29,7 +29,7 @@ Or cloned from `Github <http://www.github.com/>`_ using ``git``::
 Usage
 -----
 densli uses a JSON config file to store authentication info (account / username / passord), and other options.
-To create an exaple config file you can edit with your SD details just run
+To create an example config file you can edit with your SD details just run
 ``densli`` for the first time, it will report where it has created the config
 file (this is usually in a standard location for configurations for your
 operating system, e.g. under ``$HOME/Library/Application Support/Densli`` under OS X).
@@ -45,7 +45,7 @@ Any or all of the auth details can be overridden as options passed to densli, th
 
 You can get a list/descrption of all the available options using ``-h`` or ``--help`` options.
 
-You can use densli to get results back from any of the `Server Density API <https://github.com/serverdensity/sd-api-docs>`_ endpoints, for exampleto access the `devices list <https://github.com/serverdensity/sd-api-docs/blob/master/sections/devices.md#list>`_::
+You can use densli to get results back from any of the `Server Density API <https://github.com/serverdensity/sd-api-docs>`_ endpoints, for example to access the `devices list <https://github.com/serverdensity/sd-api-docs/blob/master/sections/devices.md#list>`_::
 
     densli devices list
 
