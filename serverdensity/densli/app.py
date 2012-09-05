@@ -24,6 +24,7 @@ try:
 except ImportError:
     import json
 
+
 def show_error(msgs, ex=None, tab=4):
     for msg in msgs:
         with indent(tab, quote='!!!'):
@@ -33,6 +34,7 @@ def show_error(msgs, ex=None, tab=4):
         puts('', stream=STDERR)
         with indent(8, quote='!!!'):
             puts(colored.red(unicode(ex)), stream=STDERR)
+
 
 def show_info(msgs):
     for msg in msgs:
@@ -66,7 +68,8 @@ def main():
 
     parser.add_option("-P", "--postback", dest="postback", help="Flag STDIN"
                       " piped data as being a metric postback, so send as raw"
-                      " JSON in the POST field 'postback'.", action="store_true")
+                      " JSON in the POST field 'postback'.",
+                      action="store_true")
 
     parser.add_option("-t", "--timeago", dest="timeago", help="Take a relative"
                       " time offset from NOW and use that as the range for"
@@ -100,7 +103,8 @@ def main():
     # If we couldn't load a config, create a default config file but warn
     # the user as it won't work without editing
     if config is None:
-        with open(os.path.join(os.path.dirname(__file__), 'config.json')) as json_fp:
+        with open(os.path.join(
+                os.path.dirname(__file__), 'config.json')) as json_fp:
             resources.user.write('config.json', json_fp.read())
 
         fp = resources.user.open('config.json')
@@ -132,7 +136,8 @@ def main():
     # If we didn't get any args of we got a single arg but it didn't contain a
     # recognised delimiter, then we can't proceed as we don't know what to get
     # from the API
-    if not args or (len(args) == 1 and not any(x in args[0] for x in ('/', '.'))):
+    if not args or (len(args) == 1
+            and not any(x in args[0] for x in ('/', '.'))):
         show_error(['Too few arguments supplied, please give me a full'
                      ' path to actually retrieve from the SD API.',
                      'Path can be in any of the form:'])
@@ -219,30 +224,35 @@ def main():
         show_error(['Something went wrong sending the API request:'], e)
         return 1
 
-    if not error and args[0] == 'metrics' and args[1] == 'getRange' and options.spark:
-        for k,metric in api_output.iteritems():
+    if (not error and args[0] == 'metrics' and args[1] == 'getRange' and
+            options.spark):
+        for k, metrics in api_output.iteritems():
             # Hack to get around some metrics data structures returned by the
             # API having subkeys
-            if len(metric.keys()) == 1:
-                metric = metric.values()[0]
+            if 'label' in metrics:
+                metrics = {'': metrics}
 
-            show_info(["%s for %s - %s:" % (metric['label'], data['rangeStart'],
-                                      data['rangeEnd'])])
+            for _, metric in metrics.iteritems():
+                show_info(["%s for %s - %s:" % (metric['label'],
+                                                data['rangeStart'],
+                                                data['rangeEnd'])])
 
-            values = [v[1] for v in metric['data']]
+                values = [v[1] for v in metric['data']]
 
-            max_graph_width = config.get('max_graph_width', 20)
-            # Anything bigger than this looks like crap in the terminal
-            if len(values) > max_graph_width:
-                slice_value = int(len(values)/max_graph_width)
-                # Reduce large list to smaller list of averages
-                # By taking mean of sliding window normalised lists
-                # for every X normalised list (not entirely accurate, but good
-                # enough)
-                values = list(sum(values[i:i+slice_value])/len(values) for i in
-                                xrange(len(values)-2) if i % slice_value == 0)
+                # Anything bigger than this looks like crap in the terminal
+                max_graph_width = config.get('max_graph_width', 20)
+                if len(values) > max_graph_width:
+                    slice_value = int(len(values) / max_graph_width)
 
-            puts(colored.blue(spark(values)))
+                    # Reduce large list to smaller list of averages
+                    # by taking mean of sliding window normalised lists
+                    # for every X normalised list (not entirely accurate,
+                    # but good enough)
+                    values = list(sum(values[i:i + slice_value]) / len(values)
+                                  for i in xrange(len(values) - 2)
+                                           if i % slice_value == 0)
+
+                puts(colored.blue(spark(values)))
     else:
         puts(json.dumps(api_output, indent=4))
 
