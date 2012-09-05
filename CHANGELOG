@@ -1,6 +1,12 @@
 ChangeLog for densli
 ====================
 
+1.0.3 (05-09-2012)
+------------------
+
+ - Allow spaces in -t/--timeago format for greater flexibility.
+ - Fix handling of metrics API endpoint response format for some values that use lots of subkeys, when generating sparkblock graphs.
+
 1.0.2 (31-08-2012)
 ------------------
 
